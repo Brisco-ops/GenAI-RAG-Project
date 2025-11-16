@@ -1,0 +1,6 @@
+gradio
+langchain
+pypdf
+chromadb
+sentence-transformers
+huggingface-hub
