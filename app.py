@@ -13,6 +13,7 @@ from langchain.llms import HuggingFaceHub # We will rely only on this
 
 from pathlib import Path
 import chromadb
+import re
 
 
 # --- OPTIMIZED LIST OF LLMS FOR FREE HF SPACE DEPLOYMENT ---
@@ -52,16 +53,23 @@ def split_documents(documents, chunk_size, chunk_overlap):
     return texts
 
 # Initialize the vector database (Chroma)
+# Initialize the vector database (Chroma)
 def initialize_database(document_path, chunk_size, chunk_overlap):
     """Initializes the Chroma vector store with document embeddings."""
 
     # 1. Check for document
     if not document_path:
-        # Return 3 values matching the outputs
         return None, "", "Database initialization failed: No document provided."
 
-    # 2. Generate collection name
-    collection_name = "rag_collection_" + os.path.basename(document_path).split('.')[0]
+    # 2. Generate and SANITIZE collection name
+    base_name = os.path.basename(document_path).split('.')[0]
+    # --- NOUVELLES LIGNES ---
+    # Remplace tout ce qui n'est pas une lettre, un chiffre ou _ par un _
+    sanitized_name = re.sub(r'[^a-zA-Z0-9_]', '_', base_name)
+    # Limite la longueur pour être sûr
+    sanitized_name = sanitized_name[:50]
+    collection_name = "rag_collection_" + sanitized_name
+    # --- FIN DES NOUVELLES LIGNES ---
 
     # 3. Load and split
     try:
@@ -93,13 +101,11 @@ def initialize_database(document_path, chunk_size, chunk_overlap):
             client=client,
             collection_name=collection_name
         )
-        # Return 3 values
         return vector_db, collection_name, f"Database initialized with {len(texts)} chunks."
     except Exception as e:
         print(f"Error during vector store creation: {e}")
-        # Return 3 values
-        return None, collection_name, "Database initialization failed: Error during embedding process."
-
+        # Passe l'erreur au lieu d'un message générique
+        return None, collection_name, f"Database initialization failed: {e}"
 
 # Initialize the LLM and the QA chain
 def initialize_LLM(llm_name, temperature, max_new_tokens, top_k, vector_db):
