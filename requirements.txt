@@ -1,5 +1,5 @@
 gradio
-langchain
+langchain==0.0.354
 pypdf
 chromadb
 sentence-transformers
