@@ -10,6 +10,10 @@ pinned: true
 
 Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference 
 
+---
+
+
+
 
 # 🚀 Local installation and execution
 
@@ -26,7 +30,7 @@ Follow these steps to launch the project on your machine.
 git clone [https://github.com/Brisco-ops/GenAI-RAG-Project.git](https://github.com/Brisco-ops/GenAI-RAG-Project.git)
 cd GenAI-RAG-Project
 
-### 2. Create a virtual environment
+2. Create a virtual environment
 
 # For macOS / Linux
 python3 -m venv venv
@@ -38,7 +42,7 @@ python -m venv venv
 
 pip install -r requirements.txt
 
-### 3. Intall dependencies
+3. Intall dependencies
 gradio
 langchain==0.0.354
 pypdf
@@ -48,7 +52,7 @@ huggingface-hub
 
 # Note: The langchain version is fixed at 0.0.354 because newer versions have major changes (imports) that would break the code.
 
-### 4. Set up your “Secret” (Hugging Face Token)
+4. Set up your “Secret” (Hugging Face Token)
 
 The application uses Hugging Face's external API (HuggingFaceHub) to connect to LLMs. This requires an Access Token.
 
@@ -63,7 +67,7 @@ export HUGGINGFACE_TOKEN='hf.....'
 $env:HUGGINGFACE_TOKEN='hf....'
 
 
-### 5 Launch the Application 
+5 Launch the Application 
 
 gradio app.py
 
@@ -72,7 +76,7 @@ Open the URL displayed in the terminal in your browser.
 
 
 
-### 3. Technical choices and limitations
+# 3. Technical choices and limitations
 
 ## Technical choices
 
