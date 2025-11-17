@@ -11,7 +11,24 @@ pinned: true
 Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference 
 
 ---
+1. The concept behind the application
+Our project is a conversational RAG (Retrieval-Augmented Generation) application. Its purpose is to enable users to “chat” with a PDF document that they upload.
 
+The concept works in three stages:
+
+Ingestion (Pre-processing): The user uploads a PDF file. The application cuts it into small pieces of text (chunks) that overlap.
+
+Embedding (Learning): Each piece of text is transformed into a mathematical representation (a “vector”) using an embedding model (such as all-MiniLM-L6-v2). These vectors are stored in a vector database (ChromaDB).
+
+Generation (Conversation):
+
+When a user asks a question, the application converts that question into a vector.
+
+It compares this vector to those in the database to find the most relevant chunks of text from the PDF.
+
+It sends these relevant pieces (the “context”) to a large external language model (LLM) (such as Mistral or Gemma via the Hugging Face API), asking it to answer the question based solely on this context.
+
+The interface, built with Gradio, allows this flow to be managed interactively.
 
 
 
