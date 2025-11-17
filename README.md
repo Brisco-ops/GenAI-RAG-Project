@@ -32,7 +32,7 @@ The interface, built with Gradio, allows this flow to be managed interactively.
 
 
 
-# 🚀 Local installation and execution
+# Local installation and execution
 
 Follow these steps to launch the project on your machine.
 
