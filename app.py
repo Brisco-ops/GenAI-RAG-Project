@@ -53,31 +53,38 @@ def split_documents(documents, chunk_size, chunk_overlap):
 
 # Initialize the vector database (Chroma)
 def initialize_database(document_path, chunk_size, chunk_overlap):
-    """Initializes the Chroma vector store with document embeddings. NOTE: This is fixed to ChromaDB."""
+    """Initializes the Chroma vector store with document embeddings."""
+
+    # 1. Check for document
     if not document_path:
-        return None, "Database initialization failed: No document provided.", 0, "", 0
-    
-    # Generate a unique collection name for the session
+        # Return 3 values matching the outputs
+        return None, "", "Database initialization failed: No document provided."
+
+    # 2. Generate collection name
     collection_name = "rag_collection_" + os.path.basename(document_path).split('.')[0]
-    
-    # 1. Load and split documents
-    documents = load_pdf(document_path)
+
+    # 3. Load and split
+    try:
+        documents = load_pdf(document_path)
+    except Exception as e:
+        print(f"Error in load_pdf: {e}")
+        return None, collection_name, "Database initialization failed: Error loading PDF content."
+
     if not documents:
-        return None, "Database initialization failed: Could not load document content.", 0, "", 0
-        
+        return None, collection_name, "Database initialization failed: Could not load document content."
+
     texts = split_documents(documents, chunk_size, chunk_overlap)
-    
-    # 2. Initialize Embeddings
-    # This embedding model runs efficiently on CPU
+
+    # 4. Initialize Embeddings
     embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
     embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
-    
-    # 3. Create Vector Store (Chroma)
+
+    # 5. Create Vector Store (Chroma)
     client = chromadb.Client()
-    
-    db_progress = 0
-    yield None, collection_name, db_progress, "Embedding...", 0
-    
+
+    # Yield a status update (3 values)
+    yield None, collection_name, "Embedding... (This may take a moment)"
+
     try:
         # Create and persist the Chroma database
         vector_db = Chroma.from_documents(
@@ -86,27 +93,29 @@ def initialize_database(document_path, chunk_size, chunk_overlap):
             client=client,
             collection_name=collection_name
         )
-        db_progress = 100
-        return vector_db, collection_name, db_progress, f"Database initialized with {len(texts)} chunks.", 0
+        # Return 3 values
+        return vector_db, collection_name, f"Database initialized with {len(texts)} chunks."
     except Exception as e:
         print(f"Error during vector store creation: {e}")
-        return None, "Database initialization failed: Error during embedding process.", 0, "", 0
+        # Return 3 values
+        return None, collection_name, "Database initialization failed: Error during embedding process."
 
 
 # Initialize the LLM and the QA chain
 def initialize_LLM(llm_name, temperature, max_new_tokens, top_k, vector_db):
     """Initializes the HuggingFace LLM using the external HuggingFaceHub API."""
+
+    # 1. Check for DB
     if not vector_db:
-        return None, 0, "Error: Vector database not initialized. Please upload and process a document first."
-    
-    llm_progress = 0
-    yield None, llm_progress, "Connecting to HuggingFace Inference API..."
+        # Return 2 values matching the outputs
+        return None, "Error: Vector database not initialized. Please upload and process a document first."
+
+    # Yield a status update (2 values)
+    yield None, "Connecting to HuggingFace Inference API..."
 
     # The model ID is the selected model name
     model_id = list_llm[list_llm_simple.index(llm_name)]
-    
-    # --- Simplified LLM Initialization using HuggingFaceHub ---
-    # This leverages the external Inference API, avoiding local GPU/VRAM issues.
+
     try:
         llm = HuggingFaceHub(
             repo_id=model_id,
@@ -118,15 +127,15 @@ def initialize_LLM(llm_name, temperature, max_new_tokens, top_k, vector_db):
         )
     except Exception as e:
         print(f"HuggingFaceHub error for {model_id}: {e}")
-        llm_progress = 0
-        return None, llm_progress, f"Could not initialize LLM {model_id}. Check your HuggingFace token and model accessibility."
-    
-    llm_progress = 50
-    yield None, llm_progress, "Initializing Chain..."
+        # Return 2 values
+        return None, f"Could not initialize LLM {model_id}. Check your HuggingFace token and model accessibility."
+
+    # Yield a status update (2 values)
+    yield None, "Initializing Chain..."
 
     # Initialize Conversational Retrieval Chain
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key="answer")
-    
+
     qa_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=vector_db.as_retriever(),
@@ -135,10 +144,9 @@ def initialize_LLM(llm_name, temperature, max_new_tokens, top_k, vector_db):
         chain_type="stuff", # 'stuff' works well for single-document RAG
         verbose=True
     )
-    
-    llm_progress = 100
-    return qa_chain, llm_progress, f"Chain initialized with {model_id}. (Using external Inference API)"
 
+    # Return 2 values
+    return qa_chain, f"Chain initialized with {model_id}."
 
 # Main conversation function
 def conversation(qa_chain, message, history):
